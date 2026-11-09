@@ -131,7 +131,11 @@ public final class GatewayChatClient {
         // Current Gateway challenges carry the server timestamp; sign that exact value.
         // The local clock is only a compatibility fallback for older challenge-less peers.
         long signedAt = challengeTs >= 0 ? challengeTs : System.currentTimeMillis();
-        String signatureToken = !deviceToken.isEmpty() ? deviceToken : gatewayToken;
+        // An explicitly entered shared Gateway token must take precedence over any cached
+        // per-device token. Otherwise a stale device token can mask the correct token
+        // pasted by the user and produce "gateway token mismatch".
+        boolean useSharedToken = !gatewayToken.isEmpty();
+        String signatureToken = useSharedToken ? gatewayToken : deviceToken;
         String scopes = String.join(",", SCOPES);
         String authPayload = String.join("|", "v3", identity.id, CLIENT_ID, CLIENT_MODE, ROLE,
                 scopes, Long.toString(signedAt), signatureToken, nonce, "android", "phone");
@@ -144,8 +148,8 @@ public final class GatewayChatClient {
         device.put("id", identity.id); device.put("publicKey", identity.publicKey);
         device.put("signature", signature); device.put("signedAt", signedAt); device.put("nonce", nonce);
         JSONObject auth = new JSONObject();
-        if (!deviceToken.isEmpty()) auth.put("deviceToken", deviceToken);
-        else auth.put("token", gatewayToken);
+        if (useSharedToken) auth.put("token", gatewayToken);
+        else auth.put("deviceToken", deviceToken);
         JSONObject params = new JSONObject();
         params.put("minProtocol", 4); params.put("maxProtocol", 4);
         params.put("client", client); params.put("role", ROLE);
