@@ -14,6 +14,7 @@ public final class ClawWakeView extends LinearLayout {
     private final EditText tokenInput;
     private Runnable voiceAction;
     private java.util.function.Consumer<String> connectAction;
+    private Runnable importTokenAction;
 
     public ClawWakeView(Context c) {
         super(c); setOrientation(VERTICAL); setPadding(dp(22),dp(22),dp(22),dp(16)); setBackgroundColor(0xFF07121B);
@@ -25,12 +26,15 @@ public final class ClawWakeView extends LinearLayout {
         transcript=text("你说的话会显示在这里。",14,0xFFD6E5EC,false); transcript.setGravity(Gravity.CENTER); transcript.setPadding(dp(8),dp(5),dp(8),dp(5)); addView(transcript,new LayoutParams(-1,dp(42)));
         assistant=text("OpenClaw 的回复会显示在这里。",14,0xFF8FE8D8,false); assistant.setGravity(Gravity.CENTER); assistant.setPadding(dp(8),dp(4),dp(8),dp(4)); addView(assistant,new LayoutParams(-1,dp(54)));
         tokenInput=new EditText(c); tokenInput.setSingleLine(true); tokenInput.setTextSize(13); tokenInput.setTextColor(Color.WHITE); tokenInput.setHintTextColor(0xFF718696); tokenInput.setHint("粘贴 OpenClaw Gateway Token"); tokenInput.setInputType(129); tokenInput.setPadding(dp(12),0,dp(12),0); tokenInput.setBackground(bg(0xFF10232E,dp(10))); addView(tokenInput,new LayoutParams(-1,dp(46)));
-        Button connect=new Button(c); connect.setText("连接本机 Gateway"); connect.setTextColor(Color.WHITE); connect.setBackground(bg(0xFF174F65,dp(24))); connect.setOnClickListener(v->{if(connectAction!=null)connectAction.accept(tokenInput.getText().toString().trim());}); LayoutParams cp=new LayoutParams(-1,dp(46)); cp.topMargin=dp(6); addView(connect,cp);
+        Button importToken=new Button(c); importToken.setText("从文件导入 Token"); importToken.setTextColor(0xFFB7FFF2); importToken.setBackground(bg(0xFF10232E,dp(20))); importToken.setOnClickListener(v->{if(importTokenAction!=null)importTokenAction.run();}); LayoutParams ip=new LayoutParams(-1,dp(42)); ip.topMargin=dp(6); addView(importToken,ip);
+        Button connect=new Button(c); connect.setText("连接本机 Gateway"); connect.setTextColor(Color.WHITE); connect.setBackground(bg(0xFF174F65,dp(24))); connect.setOnClickListener(v->{if(connectAction!=null)connectAction.accept(tokenInput.getText().toString().trim());}); LayoutParams cp=new LayoutParams(-1,dp(46)); cp.topMargin=dp(5); addView(connect,cp);
         Button mic=new Button(c); mic.setText("🎙  开始说话"); mic.setTextColor(Color.WHITE); mic.setBackground(bg(0xFF087F78,dp(26))); mic.setOnClickListener(v->{if(voiceAction!=null)voiceAction.run();}); LayoutParams mp=new LayoutParams(-1,dp(50)); mp.topMargin=dp(5); addView(mic,mp);
         TextView note=text("本机地址：ws://127.0.0.1:18789",10,0xFF8298A8,false); note.setGravity(Gravity.CENTER); LayoutParams np=new LayoutParams(-1,dp(22)); np.topMargin=dp(5); addView(note,np);
     }
     public void setVoiceAction(Runnable r){voiceAction=r;}
     public void setConnectAction(java.util.function.Consumer<String> a){connectAction=a;}
+    public void setImportTokenAction(Runnable a){importTokenAction=a;}
+    public void setToken(String token){tokenInput.setText(token); tokenInput.setSelection(tokenInput.length());}
     public void setStatus(String s){status.setText("●  "+s);}
     public void setLevel(float level){orb.setLevel(level);}
     public void setRecognizedText(String s){transcript.setText("你："+s);}
