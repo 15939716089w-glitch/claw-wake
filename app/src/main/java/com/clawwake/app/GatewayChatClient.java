@@ -85,7 +85,10 @@ public final class GatewayChatClient {
         if ("event".equals(type)) {
             String event = frame.optString("event", "");
             JSONObject payload = frame.optJSONObject("payload");
-            if ("connect.challenge".equals(event) && payload != null) sendConnect(payload.optString("nonce", ""));
+            if ("connect.challenge".equals(event) && payload != null) {
+                long challengeTs = payload.optLong("ts", -1L);
+                sendConnect(payload.optString("nonce", ""), challengeTs);
+            }
             else if ("chat".equals(event) && payload != null) handleChatEvent(payload);
             return;
         }
@@ -98,7 +101,9 @@ public final class GatewayChatClient {
             String code = error == null ? "" : error.optString("code", "");
             if (id.equals(connectRequestId) && ("PAIRING_REQUIRED".equals(code) || message.toLowerCase().contains("pair"))) {
                 String requestId = details == null ? "" : details.optString("requestId", "");
-                status.accept("需要设备配对"+(requestId.isEmpty()?"":"，请求编号："+requestId)+"。请在 Termux 执行 openclaw devices approve "+requestId);
+                status.accept(requestId.isEmpty()
+                        ? "Gateway 要求设备配对，请在 Termux 执行 openclaw devices list 查看待审批请求"
+                        : "需要设备配对，请在 Termux 执行：openclaw devices approve "+requestId);
             } else status.accept("Gateway 错误："+message);
             return;
         }
@@ -120,10 +125,12 @@ public final class GatewayChatClient {
         }
     }
 
-    private void sendConnect(String nonce) throws Exception {
+    private void sendConnect(String nonce, long challengeTs) throws Exception {
         if (nonce.isEmpty()) { status.accept("Gateway 未提供认证挑战"); return; }
         DeviceIdentity identity = loadOrCreateIdentity();
-        long signedAt = System.currentTimeMillis();
+        // Current Gateway challenges carry the server timestamp; sign that exact value.
+        // The local clock is only a compatibility fallback for older challenge-less peers.
+        long signedAt = challengeTs >= 0 ? challengeTs : System.currentTimeMillis();
         String signatureToken = !deviceToken.isEmpty() ? deviceToken : gatewayToken;
         String scopes = String.join(",", SCOPES);
         String authPayload = String.join("|", "v3", identity.id, CLIENT_ID, CLIENT_MODE, ROLE,
