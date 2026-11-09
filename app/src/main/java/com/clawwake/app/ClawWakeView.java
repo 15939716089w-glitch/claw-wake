@@ -12,7 +12,8 @@ public final class ClawWakeView extends LinearLayout {
     private final TextView assistant;
     private final OrbView orb;
     private final EditText tokenInput;
-    private Runnable voiceAction;
+    private java.util.function.Consumer<String> sendAction;
+    private final EditText messageInput;
     private java.util.function.Consumer<String> connectAction;
     private Runnable importTokenAction;
 
@@ -28,10 +29,21 @@ public final class ClawWakeView extends LinearLayout {
         tokenInput=new EditText(c); tokenInput.setSingleLine(true); tokenInput.setTextSize(13); tokenInput.setTextColor(Color.WHITE); tokenInput.setHintTextColor(0xFF718696); tokenInput.setHint("粘贴 OpenClaw Gateway Token"); tokenInput.setInputType(129); tokenInput.setPadding(dp(12),0,dp(12),0); tokenInput.setBackground(bg(0xFF10232E,dp(10))); addView(tokenInput,new LayoutParams(-1,dp(46)));
         Button importToken=new Button(c); importToken.setText("从文件导入 Token"); importToken.setTextColor(0xFFB7FFF2); importToken.setBackground(bg(0xFF10232E,dp(20))); importToken.setOnClickListener(v->{if(importTokenAction!=null)importTokenAction.run();}); LayoutParams ip=new LayoutParams(-1,dp(42)); ip.topMargin=dp(6); addView(importToken,ip);
         Button connect=new Button(c); connect.setText("连接本机 Gateway"); connect.setTextColor(Color.WHITE); connect.setBackground(bg(0xFF174F65,dp(24))); connect.setOnClickListener(v->{if(connectAction!=null)connectAction.accept(tokenInput.getText().toString().trim());}); LayoutParams cp=new LayoutParams(-1,dp(46)); cp.topMargin=dp(5); addView(connect,cp);
-        Button mic=new Button(c); mic.setText("🎙  开始说话"); mic.setTextColor(Color.WHITE); mic.setBackground(bg(0xFF087F78,dp(26))); mic.setOnClickListener(v->{if(voiceAction!=null)voiceAction.run();}); LayoutParams mp=new LayoutParams(-1,dp(50)); mp.topMargin=dp(5); addView(mic,mp);
+        messageInput=new EditText(c);
+        messageInput.setTextSize(15); messageInput.setTextColor(Color.WHITE);
+        messageInput.setHintTextColor(0xFF718696); messageInput.setHint("输入你想对 OpenClaw 说的话…");
+        messageInput.setMinLines(2); messageInput.setMaxLines(4);
+        messageInput.setGravity(Gravity.TOP|Gravity.START);
+        messageInput.setPadding(dp(12),dp(10),dp(12),dp(10));
+        messageInput.setBackground(bg(0xFF10232E,dp(12)));
+        LayoutParams msgp=new LayoutParams(-1,dp(76)); msgp.topMargin=dp(7); addView(messageInput,msgp);
+        Button send=new Button(c); send.setText("发送文字消息"); send.setTextColor(Color.WHITE);
+        send.setBackground(bg(0xFF087F78,dp(26)));
+        send.setOnClickListener(v->{String message=messageInput.getText().toString().trim(); if(!message.isEmpty() && sendAction!=null){sendAction.accept(message); messageInput.setText("");}});
+        LayoutParams sendp=new LayoutParams(-1,dp(50)); sendp.topMargin=dp(5); addView(send,sendp);
         TextView note=text("本机地址：ws://127.0.0.1:18789",10,0xFF8298A8,false); note.setGravity(Gravity.CENTER); LayoutParams np=new LayoutParams(-1,dp(22)); np.topMargin=dp(5); addView(note,np);
     }
-    public void setVoiceAction(Runnable r){voiceAction=r;}
+    public void setSendAction(java.util.function.Consumer<String> action){sendAction=action;}
     public void setConnectAction(java.util.function.Consumer<String> a){connectAction=a;}
     public void setImportTokenAction(Runnable a){importTokenAction=a;}
     public void setToken(String token){tokenInput.setText(token); tokenInput.setSelection(tokenInput.length());}
