@@ -1,4 +1,4 @@
 <voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:sessionService="com.clawwake.app.ClawVoiceSessionService"
     android:supportsAssist="true"
-    android:supportsLaunchFromKeyguard="true" />
+    android:supportsLaunchVoiceAssistFromKeyguard="true" />
