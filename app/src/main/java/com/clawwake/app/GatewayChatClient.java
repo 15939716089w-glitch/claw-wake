@@ -171,19 +171,19 @@ public final class GatewayChatClient {
 
     private void handleChatEvent(JSONObject payload) {
         String runId = payload.optString("runId", "");
+        if (!SESSION_KEY.equals(payload.optString("sessionKey", SESSION_KEY))) return;
         if (!activeRunId.isEmpty() && !runId.isEmpty() && !activeRunId.equals(runId)) return;
         JSONObject message = payload.optJSONObject("message");
         if (message != null && !"assistant".equals(message.optString("role", "assistant"))) return;
         String state = payload.optString("state", "");
         String text = message == null ? "" : extractText(message.opt("content"));
-        if (text.isEmpty()) text = payload.optString("delta", "");
-        if (!text.isEmpty()) {
-            if ("delta".equals(state)) {
-                responseBuffer.append(text);
-                reply.accept(responseBuffer.toString());
-            } else {
-                responseBuffer.setLength(0); responseBuffer.append(text); reply.accept(text);
-            }
+        String deltaText = payload.optString("deltaText", "");
+        if (!deltaText.isEmpty()) {
+            responseBuffer.append(deltaText);
+            reply.accept(responseBuffer.toString());
+        } else if (!text.isEmpty()) {
+            // message.content is a cumulative projection; replace rather than append it.
+            responseBuffer.setLength(0); responseBuffer.append(text); reply.accept(text);
         }
         if ("final".equals(state)) status.accept("OpenClaw 已回复");
         else if ("error".equals(state)) status.accept("OpenClaw 处理消息时发生错误");
