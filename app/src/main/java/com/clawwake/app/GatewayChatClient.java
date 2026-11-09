@@ -60,7 +60,9 @@ public final class GatewayChatClient {
         }
         if (socket != null) socket.close(1000, "reconnect");
         connected = false;
-        status.accept("正在连接本机 Gateway…");
+        status.accept(gatewayToken.isEmpty()
+                ? "正在连接本机 Gateway · 使用已保存设备凭据"
+                : "正在连接本机 Gateway · 输入 Token 指纹 "+fingerprint(gatewayToken));
         Request request = new Request.Builder().url(URL).build();
         socket = http.newWebSocket(request, new WebSocketListener() {
             @Override public void onOpen(WebSocket webSocket, Response response) {
@@ -238,6 +240,12 @@ public final class GatewayChatClient {
         return Base64.encodeToString(signer.generateSignature(), Base64.URL_SAFE|Base64.NO_WRAP|Base64.NO_PADDING);
     }
 
+    private String fingerprint(String value) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+            return hex(digest).substring(0, 12);
+        } catch (Exception e) { return "不可用"; }
+    }
     private String hex(byte[] bytes) {
         StringBuilder out = new StringBuilder(); for (byte b:bytes) out.append(String.format("%02x", b)); return out.toString();
     }
