@@ -14,7 +14,7 @@ Claw Wake is an **in-app** Chinese voice assistant for an OpenClaw Gateway runni
 
 ## Current limitations / verification status
 
-This is an early integration, **not yet verified on the target Vivo V2203A**. The code has been committed, but a successful Android Gradle build and a live Gateway conversation have not yet been confirmed.
+This is an early integration. **Android Gradle debug APK build succeeded in GitHub Actions on 2026-11-09** (run `42599412897`). The APK has not yet been installed and exercised against the live Gateway on the target Vivo V2203A.
 
 - The app currently assumes the Gateway is on the same phone at `127.0.0.1:18789`.
 - On first connection, paste the Gateway auth token into the app. After a successful pairing/hello response, the issued device token is saved in encrypted preferences; subsequent connections can use the saved device token.
