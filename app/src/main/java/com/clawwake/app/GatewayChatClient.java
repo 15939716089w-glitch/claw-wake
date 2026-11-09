@@ -171,7 +171,7 @@ public final class GatewayChatClient {
             params.put("idempotencyKey", UUID.randomUUID().toString());
             chatRequestId = UUID.randomUUID().toString();
             sendRequest(chatRequestId, "chat.send", params);
-            status.accept("正在发送语音识别结果…");
+            status.accept("正在发送文字消息…");
         } catch (Exception e) { status.accept("发送失败："+safeMessage(e)); }
     }
 
